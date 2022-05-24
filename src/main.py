@@ -1,28 +1,34 @@
 __author__ = "Hiermann Alexander, Schmidt Tobias"
-__version__ = 1.0
+__version__ = 1.1
 
 # be sure to install all needed packages for import
-import os
+from os import getenv
 import psycopg2
 import ipaddress
 from dotenv import load_dotenv
 import logging
 
 # loads venv variables
-load_dotenv()
 
-# establishes a connection using venv variables
-connection = psycopg2.connect(
-    database=os.getenv("POSTGRES_DB"),
-    user=os.getenv("POSTGRES_USER"),
-    password=os.getenv("POSTGRES_PASSWORD"),
-    host=os.getenv("POSTGRES_HOST"),
-    port=os.getenv("POSTGRES_PORT")
-)
+class UnconfiguredEnvironment(Exception):
+  """class for unconfigured env vars"""
+  pass
 
-# setting preferred config for logger
-logging.basicConfig(filename='snmp_request.log', filemode='a', format='%(asctime)s, %(levelname)s-%(message)s',
-                    datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
+def load_enviroment_variables() -> dict[str, str]:
+  """
+    Custom loader for enviroment variables
+
+    :raises UnconfiguredEnvironment: if a need enviroment variable is missing
+  """
+  enviroment_variables_list = ["POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB", "POSTGRES_HOST", "POSTGRES_PORT"]
+  envs = dict()
+
+  for var in enviroment_variables_list:
+    if not (env_value := getenv(var, None)):
+      raise UnconfiguredEnvironment(f"{var} is not configured")
+    envs[var] = env_value
+  
+  return envs
 
 
 def request_snmp():
@@ -110,5 +116,26 @@ def push_snmp_to_db(response: str, row: tuple):
 
 
 if __name__ == "__main__":
+    # load .env file
+    load_dotenv()
+
+    try:
+        envs = load_enviroment_variables()
+    except UnconfiguredEnvironment as err:
+        exit(err)
+
+    # setting preferred config for logger
+    logging.basicConfig(filename='log/snmp_request.log', filemode='a', format='%(asctime)s, %(levelname)s-%(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
+
+    #establishing the connection
+    global connection
+    connection = psycopg2.connect(
+        database=envs["POSTGRES_DB"],
+        user=envs["POSTGRES_USER"],
+        password=envs["POSTGRES_PASSWORD"],
+        host=envs["POSTGRES_HOST"],
+        port=envs["POSTGRES_PORT"]
+    )
+
     request_snmp()
-    pass
