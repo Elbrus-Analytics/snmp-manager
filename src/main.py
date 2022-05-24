@@ -2,11 +2,29 @@ __author__ = "Hiermann Alexander, Schmidt Tobias, Markus Tomsik"
 __version__ = 1.2
 
 from os import getenv
+from datetime import datetime
 import logging
 import subprocess
 import psycopg2
 import ipaddress
 from dotenv import load_dotenv
+
+SNMP_Query = tuple[int, str, int, str, str | None, str | None, str | None, str | None, int, datetime, str]
+"""
+SNMP Query returned by the datebase table `snmp_query`
+
+0.  id
+1.  oid
+2.  ip
+3.  username
+4.  encryption_method
+5.  encryption_passwd
+6.  auth_method
+7.  auth_passwd
+8.  version
+9.  time
+10. usage
+"""
 
 class UnconfiguredEnvironment(Exception):
   """class for unconfigured env vars"""
@@ -29,7 +47,7 @@ def load_enviroment_variables() -> dict[str, str]:
   return envs
 
 
-def request_snmp():
+def request_snmp() -> None:
     """
     method used to:
         1) pull snmp-queries from db
@@ -60,11 +78,11 @@ def request_snmp():
         logging.info("001, Finished SNMP-request")
 
 
-def build_snmp_query(row: tuple) -> str:
+def build_snmp_query(row: SNMP_Query) -> str:
     """
     builds out of the current row (from the select statement), depending on the version, a snmpwalk command
 
-    :param row: tuple, the current row from the select statement
+    :param row: SNMP_Query, the current row from the select statement
     :return: str, a valid 'snmpwalk' command
     """
     version = row[8]
