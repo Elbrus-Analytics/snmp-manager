@@ -2,14 +2,14 @@ __author__ = "Hiermann Alexander, Schmidt Tobias"
 __version__ = 0.1
 
 # pip install psycopg2
-
 import os
 import psycopg2
 from dotenv import load_dotenv
-import subprocess
 
+# loads venv variables
 load_dotenv()
 
+# establishes a connection using venv variables
 connection = psycopg2.connect(
     database=os.getenv("POSTGRES_DB"),
     user=os.getenv("POSTGRES_USER"),
@@ -100,11 +100,12 @@ def push_snmp_to_db(response: str, row: tuple):
     :param row: tuple, the current row from the select statement
     :return: nothing
     """
-    sql = "Insert into snmp_response(oid, reply, usage) VALUES ('" + str(row[1]) + "', '" + str(response) + "', '" + str(row[10]) + "')"
+    sql = "Insert into snmp_response(oid, reply, usage) VALUES ('" + str(row[1]) + "', '" + str(
+        response) + "', '" + str(row[10]) + "')"
     cur = connection.cursor()
     cur.execute(sql)
 
 
 if __name__ == "__main__":
-    #request_snmp()
+    # request_snmp()
     pass
