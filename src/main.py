@@ -1,6 +1,7 @@
 __author__ = "Hiermann Alexander, Schmidt Tobias, Markus Tomsik"
 __version__ = 1.2
 
+from typing import Generator
 from os import getenv
 from datetime import datetime
 from sys import exit
@@ -48,6 +49,17 @@ def load_enviroment_variables() -> dict[str, str]:
   return envs
 
 
+def get_all_snmp_queries() -> Generator[SNMP_Query]:
+    """
+        Get all snmp queries from the database
+    """
+    with connection:
+        with connection.cursor("snmp_query_cursor") as curs:
+            curs.execute("SELECT * FROM snmp_query")
+            while (query := curs.fetchone()) is not None:
+                yield query
+
+
 def request_snmp() -> None:
     """
     method used to:
@@ -61,13 +73,9 @@ def request_snmp() -> None:
     cur = connection.cursor()
     logging.info("000, Started SNMP-request")
     try:
-        cur.execute("SELECT * FROM snmp_query")
-        for job in cur.fetchall():
-            snmp_query = build_snmp_query(job)
-            if snmp_query:
-                response = execute_snmp_query(snmp_query)
-                if response:
-                    push_snmp_to_db(job[0], response)
+        for job in get_all_snmp_queries():
+            if snmp_query := build_snmp_query(job) and (response := execute_snmp_query(snmp_query)):
+                push_snmp_to_db(job[0], response)
         connection.commit()
     except (Exception, psycopg2.DatabaseError) as error:
         logging.error(f"100, An error occurred while selecting values from the database:\n{error}")
