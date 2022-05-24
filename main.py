@@ -1,5 +1,5 @@
 __author__ = "Hiermann Alexander, Schmidt Tobias"
-__version__ = 0.1
+__version__ = 1.0
 
 # pip install psycopg2
 import os
@@ -104,3 +104,4 @@ def push_snmp_to_db(response: str, row: tuple):
 
 if __name__ == "__main__":
     request_snmp()
+    pass
