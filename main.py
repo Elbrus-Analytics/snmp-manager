@@ -20,6 +20,15 @@ connection = psycopg2.connect(
 
 
 def request_snmp():
+    """
+    Method used to:
+        1) pull snmp-queries from db
+        2) build valid 'snmpwalk' commands
+        3) execute these commands
+        4) pushing response from command back to db
+
+    :return: nothing
+    """
     cur = connection.cursor()
     try:
         cur.execute("SELECT * FROM snmp_query")
@@ -40,6 +49,12 @@ def request_snmp():
 
 
 def build_snmp_query(row: tuple):
+    """
+    builds out of the current row (from the select statement), depending on the version, a snmpwalk command
+
+    :param row: tuple, the current row from the select statement
+    :return: str, a valid 'snmpwalk' command
+    """
     version = row[8]
     if version == 2:
         oid = row[1]
@@ -65,6 +80,11 @@ def build_snmp_query(row: tuple):
 
 
 def execute_snmp_query(query: str):
+    """
+    WIP -> respons muss noch gecheckt werden (ob bekommen/ ob brauchbar)
+    :param query: str, command that should be executed
+    :return: str, the response from the command
+    """
     try:
         # return subprocess.Popen(query, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[0])
         return "response101"
@@ -74,6 +94,12 @@ def execute_snmp_query(query: str):
 
 
 def push_snmp_to_db(response: str, row: tuple):
+    """
+    inserts into db table 'snmp_response' --> (oid, reply, usage)
+    :param response: str, response from def execute_snmp_query
+    :param row: tuple, the current row from the select statement
+    :return: nothing
+    """
     sql = "Insert into snmp_response(oid, reply, usage) VALUES ('" + str(row[1]) + "', '" + str(response) + "', '" + str(row[10]) + "')"
     cur = connection.cursor()
     cur.execute(sql)
