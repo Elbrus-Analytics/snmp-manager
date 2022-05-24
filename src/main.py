@@ -1,15 +1,12 @@
-__author__ = "Hiermann Alexander, Schmidt Tobias"
-__version__ = 1.1
+__author__ = "Hiermann Alexander, Schmidt Tobias, Markus Tomsik"
+__version__ = 1.2
 
-# be sure to install all needed packages for import
 from os import getenv
+import logging
+import subprocess
 import psycopg2
 import ipaddress
 from dotenv import load_dotenv
-import logging
-import subprocess
-
-# loads venv variables
 
 class UnconfiguredEnvironment(Exception):
   """class for unconfigured env vars"""
@@ -49,9 +46,9 @@ def request_snmp():
         for job in cur.fetchall():
             snmp_query = build_snmp_query(job)
             if snmp_query:
-                response: str = execute_snmp_query(snmp_query)
+                response = execute_snmp_query(snmp_query)
                 if response:
-                    push_snmp_to_db(response, job)
+                    push_snmp_to_db(job[0], response)
         connection.commit()
     except (Exception, psycopg2.DatabaseError) as error:
         logging.error(f"100, An error occurred while selecting values from the database:\n{error}")
@@ -93,17 +90,20 @@ def build_snmp_query(row: tuple) -> str:
             logging.error(f"112, Missing values for SNMPv3 request for Object with id={row[0]}")
 
 
-def execute_snmp_query(query: str) -> bytes:
+def execute_snmp_query(query: str) -> str:
     """
     Executes snmpwalk shell command
 
     :param query: str, command that should be executed
     :return: str, the response from the command
     """
-    return subprocess.Popen(query, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[0]
+    return subprocess.Popen(
+        query, shell=True, stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    ).communicate()[0].decode("utf-8").split("=")[1].strip()
 
 
-def push_snmp_to_db(response: str, row: tuple) -> None:
+def push_snmp_to_db(id: int, response: str) -> None:
     """
     inserts into db table 'snmp_response' --> (oid, reply, usage)
 
@@ -111,9 +111,10 @@ def push_snmp_to_db(response: str, row: tuple) -> None:
     :param row: tuple, the current row from the select statement
     :return: nothing
     """
-    sql = "Insert into snmp_response(id, reply) VALUES (" + str(row[0]) + ", '" + response + "')"
+    sql = "insert into snmp_response(id, reply) VALUES (%s, %s)"
     cur = connection.cursor()
-    cur.execute(sql)
+    cur.execute(sql, (id, response))
+    cur.close()
 
 
 if __name__ == "__main__":
@@ -130,7 +131,6 @@ if __name__ == "__main__":
                     datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
 
     #establishing the connection
-    global connection
     connection = psycopg2.connect(
         database=envs["POSTGRES_DB"],
         user=envs["POSTGRES_USER"],
