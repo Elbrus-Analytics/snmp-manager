@@ -22,7 +22,7 @@ connection = psycopg2.connect(
 def request_snmp():
     cur = connection.cursor()
     try:
-        cur.execute('SELECT * FROM snmp_query')
+        cur.execute("SELECT * FROM snmp_query")
         for job in cur.fetchall():
             snmp_query = build_snmp_query(job)
             if snmp_query:
@@ -31,7 +31,7 @@ def request_snmp():
                     push_snmp_to_db(response, job)
         connection.commit()
     except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+        print(f"Error-0: An error occurred while selecting values from the database:\n${error}")
     finally:
         if cur is not None:
             cur.close()
@@ -39,7 +39,7 @@ def request_snmp():
             connection.close()
 
 
-def build_snmp_query(row: list):
+def build_snmp_query(row: tuple):
     version = row[8]
     if version == 2:
         oid = row[1]
@@ -48,7 +48,7 @@ def build_snmp_query(row: list):
         if oid and ip and username:
             return "snmpwalk -v2c -c", username, ip, oid
         else:
-            print("missing values for version 2 for Object with id=", row[0], sep='')
+            print("Error-100: Missing values for SNMPv2 request for Object with id=", row[0], sep='')
     if version == 3:
         oid = row[1]
         ip = row[2]
@@ -61,7 +61,7 @@ def build_snmp_query(row: list):
             return ("snmpwalk -v3 -l authPriv -a", auth_meth, " -A", auth_pass,
                     "-x", encry_meth, "-X", encry_pass, "-u", username, ip, oid)
         else:
-            print("missing values for version 3 for Object with id=", row[0], sep='')
+            print("Error-101: Missing values for SNMPv3 request for Object with id=", row[0], sep='')
 
 
 def execute_snmp_query(query: str):
