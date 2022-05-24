@@ -81,3 +81,4 @@ def push_snmp_to_db(response: str, row: tuple):
 
 if __name__ == "__main__":
     #request_snmp()
+    pass
