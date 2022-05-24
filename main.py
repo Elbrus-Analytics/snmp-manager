@@ -6,6 +6,7 @@ __version__ = 0.1
 import os
 import psycopg2
 from dotenv import load_dotenv
+import subprocess
 
 load_dotenv()
 
@@ -25,9 +26,10 @@ def request_snmp():
         for job in cur.fetchall():
             snmp_query = build_snmp_query(job)
             if snmp_query:
-                print(snmp_query)
-                execute_snmp_query(snmp_query)
-            # push_snmp_to_db()
+                response: str = execute_snmp_query(snmp_query[0])
+                if response:
+                    push_snmp_to_db(response, job)
+        connection.commit()
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
     finally:
@@ -63,19 +65,19 @@ def build_snmp_query(row: list):
 
 
 def execute_snmp_query(query: str):
-    pass
+    try:
+        # return subprocess.Popen(query, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[0])
+        return "response101"
+        pass
+    except Exception as error:
+        print(f"Error-102: An error occurred while executing the query:\n${error}")
 
 
-def push_snmp_to_db(response: str, row: list):
-    pass
+def push_snmp_to_db(response: str, row: tuple):
+    sql = "Insert into snmp_response(oid, reply, usage) VALUES ('" + str(row[1]) + "', '" + str(response) + "', '" + str(row[10]) + "')"
+    cur = connection.cursor()
+    cur.execute(sql)
 
 
 if __name__ == "__main__":
-    sql = """Insert into snmp_query(oid, ip, version, usage, username)
-    VALUES ('iso.4.5.6.7.123.4', 123456, 2, 'Storage usage', 'admin');
-    """
-    #cur = connection.cursor()
-    #cur.execute(sql)
-    #connection.commit()
-    #connection.close()
-    request_snmp()
+    #request_snmp()
