@@ -86,12 +86,8 @@ def execute_snmp_query(query: str):
     :param query: str, command that should be executed
     :return: str, the response from the command
     """
-    try:
-        # return subprocess.Popen(query, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[0])
-        return "response101"
-        pass
-    except Exception as error:
-        print(f"Error-102: An error occurred while executing the query:\n${error}")
+    # return subprocess.Popen(query, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[0])
+    return "response101"
 
 
 def push_snmp_to_db(response: str, row: tuple):
@@ -101,12 +97,10 @@ def push_snmp_to_db(response: str, row: tuple):
     :param row: tuple, the current row from the select statement
     :return: nothing
     """
-    sql = "Insert into snmp_response(oid, reply, usage) VALUES ('" + str(row[1]) + "', '" + str(
-        response) + "', '" + str(row[10]) + "')"
+    sql = "Insert into snmp_response(id, reply) VALUES (" + str(row[0]) + ", '" + response + "')"
     cur = connection.cursor()
     cur.execute(sql)
 
 
 if __name__ == "__main__":
-    # request_snmp()
-    pass
+    request_snmp()
