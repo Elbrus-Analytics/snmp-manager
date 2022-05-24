@@ -1,5 +1,5 @@
 __author__ = "Hiermann Alexander, Schmidt Tobias, Markus Tomsik"
-__version__ = 1.2
+__version__ = 1.3
 
 from typing import Generator
 from os import getenv
@@ -49,15 +49,14 @@ def load_enviroment_variables() -> dict[str, str]:
   return envs
 
 
-def get_all_snmp_queries() -> Generator[SNMP_Query]:
+def get_all_snmp_queries() -> Generator[SNMP_Query, None, None]:
     """
         Get all snmp queries from the database
     """
-    with connection:
-        with connection.cursor("snmp_query_cursor") as curs:
-            curs.execute("SELECT * FROM snmp_query")
-            while (query := curs.fetchone()) is not None:
-                yield query
+    with connection.cursor("snmp_query_cursor") as curs:
+        curs.execute("SELECT * FROM snmp_query")
+        while (query := curs.fetchone()) is not None:
+            yield query
 
 
 def request_snmp() -> None:
@@ -74,8 +73,9 @@ def request_snmp() -> None:
     logging.info("000, Started SNMP-request")
     try:
         for job in get_all_snmp_queries():
-            if snmp_query := build_snmp_query(job) and (response := execute_snmp_query(snmp_query)):
-                push_snmp_to_db(job[0], response)
+            if snmp_query := build_snmp_query(job):
+                if response := execute_snmp_query(snmp_query):
+                    push_snmp_to_db(job[0], response)
         connection.commit()
     except (Exception, psycopg2.DatabaseError) as error:
         logging.error(f"100, An error occurred while selecting values from the database:\n{error}")
