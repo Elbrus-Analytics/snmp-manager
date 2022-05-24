@@ -3,6 +3,7 @@ __version__ = 1.2
 
 from os import getenv
 from datetime import datetime
+from sys import exit
 import logging
 import subprocess
 import psycopg2
