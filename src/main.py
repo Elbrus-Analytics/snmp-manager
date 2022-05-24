@@ -7,6 +7,7 @@ import psycopg2
 import ipaddress
 from dotenv import load_dotenv
 import logging
+import subprocess
 
 # loads venv variables
 
@@ -48,7 +49,7 @@ def request_snmp():
         for job in cur.fetchall():
             snmp_query = build_snmp_query(job)
             if snmp_query:
-                response: str = execute_snmp_query(snmp_query[0])
+                response: str = execute_snmp_query(snmp_query)
                 if response:
                     push_snmp_to_db(response, job)
         connection.commit()
@@ -62,7 +63,7 @@ def request_snmp():
         logging.info("001, Finished SNMP-request")
 
 
-def build_snmp_query(row: tuple):
+def build_snmp_query(row: tuple) -> str:
     """
     builds out of the current row (from the select statement), depending on the version, a snmpwalk command
 
@@ -75,7 +76,7 @@ def build_snmp_query(row: tuple):
         ip = ipaddress.ip_address(row[2])
         username = row[3]
         if oid and ip and username:
-            return "snmpwalk -v2c -c", username, ip, oid
+            return f"snmpwalk -v2c -c {username} {ip} {oid}"
         else:
             logging.error(f"111, Missing values for SNMPv2 request for Object with id={row[0]}")
     if version == 3:
@@ -87,25 +88,25 @@ def build_snmp_query(row: tuple):
         auth_meth = row[6]
         auth_pass = row[7]
         if oid and ip and username and encry_meth and encry_pass and auth_meth and auth_pass:
-            return (f"snmpwalk -v3 -l authPriv -a", auth_meth, " -A", auth_pass,
-                    "-x", encry_meth, "-X", encry_pass, "-u", username, ip, oid)
+            return f"snmpwalk -v3 -l authPriv -a {auth_meth} -A {auth_pass} -x {encry_meth} -X {encry_pass} -u {username} {ip} {oid}"
         else:
             logging.error(f"112, Missing values for SNMPv3 request for Object with id={row[0]}")
 
 
-def execute_snmp_query(query: str):
+def execute_snmp_query(query: str) -> bytes:
     """
-    WIP -> respons muss noch gecheckt werden (ob bekommen/ ob brauchbar)
+    Executes snmpwalk shell command
+
     :param query: str, command that should be executed
     :return: str, the response from the command
     """
-    # return subprocess.Popen(query, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[0])
-    return "response101"
+    return subprocess.Popen(query, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[0]
 
 
-def push_snmp_to_db(response: str, row: tuple):
+def push_snmp_to_db(response: str, row: tuple) -> None:
     """
     inserts into db table 'snmp_response' --> (oid, reply, usage)
+
     :param response: str, response from def execute_snmp_query
     :param row: tuple, the current row from the select statement
     :return: nothing
