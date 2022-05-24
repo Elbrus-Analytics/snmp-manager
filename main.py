@@ -4,6 +4,7 @@ __version__ = 0.1
 # pip install psycopg2
 import os
 import psycopg2
+import ipaddress
 from dotenv import load_dotenv
 
 # loads venv variables
@@ -58,7 +59,7 @@ def build_snmp_query(row: tuple):
     version = row[8]
     if version == 2:
         oid = row[1]
-        ip = row[2]
+        ip = ipaddress.ip_address(row[2])
         username = row[3]
         if oid and ip and username:
             return "snmpwalk -v2c -c", username, ip, oid
@@ -66,7 +67,7 @@ def build_snmp_query(row: tuple):
             print("Error-100: Missing values for SNMPv2 request for Object with id=", row[0], sep='')
     if version == 3:
         oid = row[1]
-        ip = row[2]
+        ip = ipaddress.ip_address(row[2])
         username = row[3]
         encry_meth = row[4]
         encry_pass = row[5]
