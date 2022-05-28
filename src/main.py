@@ -69,7 +69,6 @@ def request_snmp() -> None:
 
     :return: nothing
     """
-    cur = connection.cursor()
     logging.info("000, Started SNMP-request")
     try:
         for job in get_all_snmp_queries():
@@ -80,8 +79,6 @@ def request_snmp() -> None:
     except (Exception, psycopg2.DatabaseError) as error:
         logging.error(f"100, An error occurred while selecting values from the database:\n{error}")
     finally:
-        if cur is not None:
-            cur.close()
         if connection is not None:
             connection.close()
         logging.info("001, Finished SNMP-request")
