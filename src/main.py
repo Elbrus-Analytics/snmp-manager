@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 
 SNMP_Query = tuple[int, str, int, str, str | None, str | None, str | None, str | None, int, datetime, str]
 """
-SNMP Query returned by the datebase table `snmp_query`
+snmp query returned by the datebase table 'snmp_query'
 
 0.  id
 1.  oid
@@ -29,14 +29,14 @@ SNMP Query returned by the datebase table `snmp_query`
 """
 
 class UnconfiguredEnvironment(Exception):
-  """class for unconfigured env vars"""
+  """class for unconfigured environment variables"""
   pass
 
 def load_environment_variables() -> dict[str, str]:
   """
-    Custom loader for environment variables
+    custom loader for environment variables
 
-    :raises UnconfiguredEnvironment: if a need environment variable is missing
+    :raises UnconfiguredEnvironment: if a needed environment variable is missing
   """
   environment_variables_list = ["POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB", "POSTGRES_HOST", "POSTGRES_PORT"]
   envs = dict()
@@ -50,9 +50,7 @@ def load_environment_variables() -> dict[str, str]:
 
 
 def get_all_snmp_queries() -> Generator[SNMP_Query, None, None]:
-    """
-        Get all snmp queries from the database
-    """
+    """get all snmp queries from the database"""
     with connection.cursor("snmp_query_cursor") as curs:
         curs.execute("SELECT * FROM snmp_query")
         while (query := curs.fetchone()) is not None:
@@ -66,8 +64,6 @@ def request_snmp() -> None:
         2) build valid 'snmpwalk' commands
         3) execute these commands
         4) pushing response from command back to db
-
-    :return: nothing
     """
     logging.info("000, Started SNMP-request")
     try:
@@ -86,7 +82,7 @@ def request_snmp() -> None:
 
 def build_snmp_query(row: SNMP_Query) -> str:
     """
-    builds out of the current row (from the select statement), depending on the version, a snmpwalk command
+    builds an snmpwalk command out of the current row (from the select statement)
 
     :param row: SNMP_Query, the current row from the select statement
     :return: str, a valid 'snmpwalk' command
@@ -129,11 +125,10 @@ def execute_snmp_query(query: str) -> str:
 
 def push_snmp_to_db(id: int, response: str) -> None:
     """
-    inserts into db table 'snmp_response' --> (oid, reply, usage)
+    inserts into db table 'snmp_response' --> (oid, reply)
 
-    :param response: str, response from def execute_snmp_query
+    :param response: str, response to snmp request
     :param row: tuple, the current row from the select statement
-    :return: nothing
     """
     sql = "insert into snmp_response(id, reply) VALUES (%s, %s)"
     cur = connection.cursor()
