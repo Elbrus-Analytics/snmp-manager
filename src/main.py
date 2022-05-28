@@ -32,16 +32,16 @@ class UnconfiguredEnvironment(Exception):
   """class for unconfigured env vars"""
   pass
 
-def load_enviroment_variables() -> dict[str, str]:
+def load_environment_variables() -> dict[str, str]:
   """
-    Custom loader for enviroment variables
+    Custom loader for environment variables
 
-    :raises UnconfiguredEnvironment: if a need enviroment variable is missing
+    :raises UnconfiguredEnvironment: if a need environment variable is missing
   """
-  enviroment_variables_list = ["POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB", "POSTGRES_HOST", "POSTGRES_PORT"]
+  environment_variables_list = ["POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB", "POSTGRES_HOST", "POSTGRES_PORT"]
   envs = dict()
 
-  for var in enviroment_variables_list:
+  for var in environment_variables_list:
     if not (env_value := getenv(var, None)):
       raise UnconfiguredEnvironment(f"{var} is not configured")
     envs[var] = env_value
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     load_dotenv()
 
     try:
-        envs = load_enviroment_variables()
+        envs = load_environment_variables()
     except UnconfiguredEnvironment as err:
         exit(err)
 
