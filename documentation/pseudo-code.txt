@@ -1,0 +1,108 @@
+the script establishes a database connection by using the environment variables,
+then it pulls snmp queries from the database and pushes the response to the queries back into the database
+
+DEFINE how snmp query from the database should look like
+
+CLASS UnconfiguredEnvironment(exception)
+    PASS and do nothing
+END CLASS
+
+DEF load_environment_variables()
+    DECLARE a list containing all environment variables names
+    DECLARE a dict
+    FOR every entry in the environment variable name list
+        IF the value for the name is None
+            RAISE an exception
+        END IF
+        APPEND to the dict, use environment variable name as key, use the value for the name as value
+    END FOR
+    RETURN the dict
+END DEF
+
+
+DEF get_all_snmp_queries()
+    WITH initializing a new named cursor from database connection
+        EXECUTE a select statement with the cursor
+        WHILE the select statement returns a line
+            YIELD the line
+        END WHILE
+    END WITH
+END DEF
+
+
+DEF request_snmp()
+    DECLARE new cursor from database connection
+    LOG that a snmp request is starting
+    TRY
+        FOR each snmp query stored in the database
+            IF the snmp query is valid
+                IF the response to the snmp query is valid
+                    PUSH the response to the database
+                END IF
+            END IF
+        END FOR
+        COMMIT every push to the database
+    EXCEPT 
+        LOG the error that occurred to a logfile
+    FINALLY 
+        IF a cursor exists
+            CLOSE the cursor
+        END IF
+        IF a connection to the database exists
+            CLOSE the connection
+        END IF
+END DEF
+
+
+DEF build_snmp_query(snmp query from database)
+    DECLARE the version by selecting in from the snmp query
+    IF the version number is 2
+        DECLARE the object identifier by selecting it from the snmp query
+        DECLARE the ip address by selecting it from the snmp query and changing it to cidr notation
+        DECLARE the username by selecting it from the snmp query
+        IF all the values from above could be selected from the snmp query
+            RETURN a snmpwalk command using the values from above
+        ELSE
+            LOG an error to the logfile
+        END IF
+    END IF
+    IF the version number is 3
+        DECLARE the object identifier by selecting it from the snmp query
+        DECLARE the ip address by selecting it from the snmp query and changing it to cidr notation
+        DECLARE the username by selecting it from the snmp query
+        DECLARE the encryption method by selecting it from the snmp query
+        DECLARE the encryption password by selecting it from the snmp query
+        DECLARE the authentication method by selecting it from the snmp query
+        DECLARE the authentication password by selecting it from the snmp query
+        IF all the values from above could be selected from the snmp query
+            RETURN a snmpwalk command using the values from above
+        ELSE
+            LOG an error to the logfile
+        END IF
+    END IF
+END DEF
+
+
+DEF execute_snmp_query(snmp query to executed)
+    RETURN the interesting part from the response by executing the snmp query via bash
+END DEF
+
+
+DEF push_snmp_to_db(initial snmp query identifier from the database, the response to the query)
+    DECLARE a sql command, containing two placeholders, to insert into the database
+    DECLARE new cursor from database connection
+    EXECUTE the sql command after inserting the snmp query identifier and the response
+    CLOSE the cursor
+END DEF
+
+INDICATE that the file is executable
+LOAD the .env file
+TRY 
+    DECLARE the environment variables
+EXCEPT in the case that environment variables are missing
+    EXIT the code
+
+CONFIGURE where, how and what should be logged
+CONNECT to the database by using the environment variables
+PUSH snmp responses by executing snmp queries
+
