@@ -1,7 +1,5 @@
 # snmp-manager
 
-This directory contains all the data that is being used in relation to the SNMP manager.
-
 ## Usage
 
 The snmp-manager is used to frequently send snmp-requests towards multiple different network devices like routers and
@@ -20,7 +18,7 @@ Deactivate it: `deactivate`
 
 ## Dependencies
 
-All needed dependencies are noted in the <a href="requirements.txt">requirements</a>. 
+All needed dependencies are noted in the <a href="requirements.txt">requirements</a>.
 
 In order to install them, type the following command:
 
