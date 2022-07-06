@@ -1,1 +1,0 @@
-This log directory for development, during production a more suitable one should be chosen
