@@ -1,6 +1,3 @@
-__author__ = "Hiermann Alexander, Schmidt Tobias, Markus Tomsik"
-__version__ = 1.3
-
 from typing import Generator
 from os import getenv
 from datetime import datetime
@@ -13,7 +10,7 @@ from dotenv import load_dotenv
 
 SNMP_Query = tuple[int, str, int, str, str | None, str | None, str | None, str | None, int, datetime, str]
 """
-snmp query returned by the datebase table 'snmp_query'
+snmp query returned by the database table 'snmp_query'
 
 0.  id
 1.  oid
@@ -28,25 +25,29 @@ snmp query returned by the datebase table 'snmp_query'
 10. usage
 """
 
-class UnconfiguredEnvironment(Exception):
-  """class for unconfigured environment variables"""
-  pass
+
+class MissingEnvironmentConfigurationException(Exception):
+    """
+    class for missing configured environment variables
+    """
+    pass
+
 
 def load_environment_variables() -> dict[str, str]:
-  """
-    custom loader for environment variables
+    """
+      custom loader for environment variables
 
-    :raises UnconfiguredEnvironment: if a needed environment variable is missing
-  """
-  environment_variables_list = ["POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB", "POSTGRES_HOST", "POSTGRES_PORT"]
-  envs = dict()
+      :raises UnconfiguredEnvironment: if a needed environment variable is missing
+    """
+    environment_variables_list = ["POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB", "POSTGRES_HOST", "POSTGRES_PORT"]
+    envs = dict()
 
-  for var in environment_variables_list:
-    if not (env_value := getenv(var, None)):
-      raise UnconfiguredEnvironment(f"{var} is not configured")
-    envs[var] = env_value
-  
-  return envs
+    for var in environment_variables_list:
+        if not (env_value := getenv(var, None)):
+            raise MissingEnvironmentConfigurationException(f"{var} is not configured")
+        envs[var] = env_value
+
+    return envs
 
 
 def get_all_snmp_queries() -> Generator[SNMP_Query, None, None]:
@@ -82,7 +83,7 @@ def request_snmp() -> None:
 
 def build_snmp_query(row: SNMP_Query) -> str:
     """
-    builds an snmpwalk command out of the current row (from the select statement)
+    builds a snmpwalk command out of the current row (from the select statement)
 
     :param row: SNMP_Query, the current row from the select statement
     :return: str, a valid 'snmpwalk' command
@@ -112,7 +113,7 @@ def build_snmp_query(row: SNMP_Query) -> str:
 
 def execute_snmp_query(query: str) -> str:
     """
-    Executes snmpwalk shell command
+    Executes snmpwalk bash command
 
     :param query: str, command that should be executed
     :return: str, the response from the command
@@ -142,14 +143,14 @@ if __name__ == "__main__":
 
     try:
         envs = load_environment_variables()
-    except UnconfiguredEnvironment as err:
+    except MissingEnvironmentConfigurationException as err:
         exit(err)
 
     # setting preferred config for logger
     logging.basicConfig(filename='log/snmp_request.log', filemode='a', format='%(asctime)s, %(levelname)s-%(message)s',
-                    datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
+                        datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
 
-    #establishing the connection
+    # establishing the connection
     connection = psycopg2.connect(
         database=envs["POSTGRES_DB"],
         user=envs["POSTGRES_USER"],
