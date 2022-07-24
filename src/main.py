@@ -165,9 +165,6 @@ if __name__ == '__main__':
     # database related:
     load_dotenv(env_vars["SHAREDCONFIG"])
 
-    logging.info('an info message')
-    logging.debug('a debug messag is not shown')
-
     connection = psycopg2.connect(
         database = getenv('DB_NAME'),
         user = getenv('DB_USER'),
