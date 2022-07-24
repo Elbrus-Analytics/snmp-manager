@@ -11,9 +11,9 @@ Persistent=True
 # 300 seconds after boot the job runs for the first time
 OnBootSec=300
 #twice a day -> 05:00:00 & 19:00:00 can be changed to custom times
-OnCalendar=--* 05,19:00:00 # TODO: Update timer
+OnCalendar=*-*-* *:*:00
 #declairs which job to execute
 Unit=snmp-manager.service
 
 [Install]
-WantedBy=timers.target 
+WantedBy=timers.target
