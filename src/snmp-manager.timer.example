@@ -1,0 +1,19 @@
+[Unit]
+Description=Schedule the snmp-manager service
+# allow manual start
+RefuseManualStart=no
+# allow manual stop
+RefuseManualStop=no
+
+[Timer]
+# if the job missed a run due it being off, the job runs afterwards 
+Persistent=True
+# 300 seconds after boot the job runs for the first time
+OnBootSec=300
+#twice a day -> 05:00:00 & 19:00:00 can be changed to custom times
+OnCalendar=--* 05,19:00:00 # TODO: Update timer
+#declairs which job to execute
+Unit=snmp-manager.service
+
+[Install]
+WantedBy=timers.target 

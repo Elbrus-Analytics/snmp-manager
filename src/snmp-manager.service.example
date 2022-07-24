@@ -1,0 +1,15 @@
+[Unit]
+Description=Service to run snmp-manager routine automaticly
+
+[Service]
+#job is starting immediatly after the start action has been called
+Type=simple
+#the user to execute the script
+User=elbrus
+#the working directory
+WorkingDirectory=/var/elbrus/snmp-manager/src
+#which script should be executed
+ExecStart=/bin/bash elb-snmp-manager.sh
+
+[Install]
+WantedBy=multi-user.target
