@@ -11,6 +11,7 @@ import psycopg2
 import subprocess
 from typing import Generator
 import ipaddress
+from datetime import date
 
 """
 This variable is used to store the result of the snmp request
@@ -157,15 +158,15 @@ if __name__ == '__main__':
     if not os.path.exists(log_file_dir):
         os.makedirs(log_file_dir)
 
-    with open(os.path.join(log_file_dir, "snmp_request.log"), 'a') as log_file:
-        log_file.write("")
-
-    logging.basicConfig(filename=f'{log_file_dir}/snmp_request.log', filemode='a',
-                        format='%(asctime)s, %(levelname)s-%(message)s',
-                        datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
+    logging.basicConfig(filename=f'{log_file_dir}/snmp-manager-{date.today()}.log', filemode='a',
+                        format='%(asctime)s {%(levelname)s} %(message)s',
+                        datefmt='[%Y-%m-%d %H:%M:%S%z]', level=logging.INFO)
 
     # database related:
     load_dotenv(env_vars["SHAREDCONFIG"])
+
+    logging.info('an info message')
+    logging.debug('a debug messag is not shown')
 
     connection = psycopg2.connect(
         database = getenv('DB_NAME'),
@@ -174,4 +175,4 @@ if __name__ == '__main__':
         host = getenv('DB_HOST'),
         port = getenv('DB_PORT')
     )
-    request_snmp()
+    #request_snmp()
