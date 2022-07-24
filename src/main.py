@@ -1,5 +1,5 @@
 __author__ = "Alexander Hiermann"
-__version__ = "2"
+__version__ = "2.1"
 __since__ = "2022/07/17"
 
 import os
@@ -11,6 +11,7 @@ import psycopg2
 import subprocess
 from typing import Generator
 import ipaddress
+import ConfigParser
 
 """
 This variable is used to store the result of the snmp request
@@ -46,7 +47,7 @@ def load_environment_variables() -> dict[str, str]:
     Please consider updating this method if any new variables are added to the environment!
     :return: envs, dict[str, str] with key and value of each variable
     """
-    env_vars_list = ["POSTGRES_HOST", "POSTGRES_PORT", "POSTGRES_DB", "POSTGRES_USER", "POSTGRES_PASSWORD", "LOG_PATH"]
+    env_vars_list = ["SHAREDCONFIG", "LOGFILEDIR"]
     envs = dict()
 
     for var in env_vars_list:
@@ -153,21 +154,25 @@ if __name__ == '__main__':
 
     env_vars = load_environment_variables()
 
-    if not os.path.exists(env_vars["LOG_PATH"]):
-        os.makedirs(env_vars["LOG_PATH"])
+    config = ConfigParser.ConfigParser()
+    config.read(env_vars["SHAREDCONFIG"])
+    
+    log_file_dir = env_vars["LOGFILEDIR"]
+    if not os.path.exists(log_file_dir):
+        os.makedirs(log_file_dir)
 
-    with open(os.path.join(env_vars["LOG_PATH"], "snmp_request.log"), 'a') as log_file:
+    with open(os.path.join(log_file_dir, "snmp_request.log"), 'a') as log_file:
         log_file.write("")
 
-    logging.basicConfig(filename=f'{env_vars["LOG_PATH"]}/snmp_request.log', filemode='a',
+    logging.basicConfig(filename=f'{log_file_dir}/snmp_request.log', filemode='a',
                         format='%(asctime)s, %(levelname)s-%(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
 
     connection = psycopg2.connect(
-        database=env_vars["POSTGRES_DB"],
-        user=env_vars["POSTGRES_USER"],
-        password=env_vars["POSTGRES_PASSWORD"],
-        host=env_vars["POSTGRES_HOST"],
-        port=env_vars["POSTGRES_PORT"]
+        database = config.get('DB_NAME'),
+        user = config.get('DB_USER'),
+        password = config.get('DB_PASSWORD'),
+        host = config.get('DB_HOST'),
+        port = config.get('DB_PORT')
     )
     request_snmp()
