@@ -174,4 +174,4 @@ if __name__ == '__main__':
         host = getenv('DB_HOST'),
         port = getenv('DB_PORT')
     )
-    #request_snmp()
+    request_snmp()
