@@ -11,7 +11,6 @@ import psycopg2
 import subprocess
 from typing import Generator
 import ipaddress
-import ConfigParser
 
 """
 This variable is used to store the result of the snmp request
@@ -151,12 +150,9 @@ def push_snmp_to_db(pk_id: int, reply: str) -> None:
 
 if __name__ == '__main__':
     load_dotenv()
-
     env_vars = load_environment_variables()
-
-    config = ConfigParser.ConfigParser()
-    config.read(env_vars["SHAREDCONFIG"])
     
+    # logging related:
     log_file_dir = env_vars["LOGFILEDIR"]
     if not os.path.exists(log_file_dir):
         os.makedirs(log_file_dir)
@@ -168,11 +164,14 @@ if __name__ == '__main__':
                         format='%(asctime)s, %(levelname)s-%(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO)
 
+    # database related:
+    load_dotenv(env_vars["SHAREDCONFIG"])
+
     connection = psycopg2.connect(
-        database = config.get('DB_NAME'),
-        user = config.get('DB_USER'),
-        password = config.get('DB_PASSWORD'),
-        host = config.get('DB_HOST'),
-        port = config.get('DB_PORT')
+        database = getenv('DB_NAME'),
+        user = getenv('DB_USER'),
+        password = getenv('DB_PASSWORD'),
+        host = getenv('DB_HOST'),
+        port = getenv('DB_PORT')
     )
-    request_snmp()
+    #request_snmp()
