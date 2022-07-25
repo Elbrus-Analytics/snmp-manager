@@ -43,7 +43,7 @@ Go to the project directory:
 ### Option 1: Automatic execution of the script
 
 #### deployment
-  - set custom user in <a href="snmp-manager.service.example">snmp-manager.service.example</a> if needed
+  - set custom user in <a href="src/snmp-manager.service.example">snmp-manager.service.example</a> if needed
   - set custom times in <a href="src/snmp-manager.timer.example">snmp-manager.timer.example</a> if needed
 
 Copy the service script
