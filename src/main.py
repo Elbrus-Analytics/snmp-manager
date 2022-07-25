@@ -30,7 +30,8 @@ Indexes with it's snmp related meanings
 9.  time
 10. usage
 """
-SNMP_Query = tuple[int, str, int, str, str | None, str | None, str | None, str | None, int, datetime, str]
+SNMP_Query = tuple[int, str, int, str, str | None, str |
+                   None, str | None, str | None, int, datetime, str]
 
 
 class MissingEnvironmentConfigurationException(Exception):
@@ -78,7 +79,7 @@ def request_snmp() -> None:
         3) execute these commands
         4) pushing response from command back to db
     """
-    logging.info("000, Started SNMP-request")
+    logging.info("### Started SNMP-request ###")
     try:
         for job in request_snmp_queries():
             if snmp_query := build_snmp_query(job):
@@ -86,11 +87,12 @@ def request_snmp() -> None:
                     push_snmp_to_db(job[0], response)
         connection.commit()
     except (Exception, psycopg2.DatabaseError) as error:
-        logging.error(f"100, An error occurred while selecting values from the database: {error}")
+        logging.error(
+            f"An error occurred while selecting values from the database: {error}")
     finally:
         if connection is not None:
             connection.close()
-        logging.info("001, Finished SNMP-request")
+        logging.info("### Finished SNMP-request ###")
 
 
 def build_snmp_query(row: SNMP_Query) -> str:
@@ -108,7 +110,8 @@ def build_snmp_query(row: SNMP_Query) -> str:
         if oid and ip and username:
             return f"snmpwalk -v2c -c {username} {ip} {oid}"
         else:
-            logging.error(f"111, Missing values for SNMPv2 request for Object with id={row[0]}")
+            logging.error(
+                f"Missing values for SNMPv2 request for Object with id={row[0]}")
     if version == 3:
         oid = row[1]
         ip = ipaddress.ip_address(row[2])
@@ -120,7 +123,8 @@ def build_snmp_query(row: SNMP_Query) -> str:
         if oid and ip and username and encry_meth and encry_pass and auth_meth and auth_pass:
             return f"snmpwalk -v3 -l authPriv -a {auth_meth} -A {auth_pass} -x {encry_meth} -X {encry_pass} -u {username} {ip} {oid}"
         else:
-            logging.error(f"112, Missing values for SNMPv3 request for Object with id={row[0]}")
+            logging.error(
+                f"Missing values for SNMPv3 request for Object with id={row[0]}")
 
 
 def execute_snmp_query(query: str) -> str:
@@ -152,7 +156,7 @@ def push_snmp_to_db(pk_id: int, reply: str) -> None:
 if __name__ == '__main__':
     load_dotenv()
     env_vars = load_environment_variables()
-    
+
     # logging related:
     log_file_dir = env_vars["LOGFILEDIR"]
     if not os.path.exists(log_file_dir):
@@ -166,10 +170,10 @@ if __name__ == '__main__':
     load_dotenv(env_vars["SHAREDCONFIG"])
 
     connection = psycopg2.connect(
-        database = getenv('DB_NAME'),
-        user = getenv('DB_USER'),
-        password = getenv('DB_PASSWORD'),
-        host = getenv('DB_HOST'),
-        port = getenv('DB_PORT')
+        database=getenv('DB_NAME'),
+        user=getenv('DB_USER'),
+        password=getenv('DB_PASSWORD'),
+        host=getenv('DB_HOST'),
+        port=getenv('DB_PORT')
     )
     request_snmp()
