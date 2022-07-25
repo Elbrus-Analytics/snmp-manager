@@ -86,7 +86,7 @@ def request_snmp() -> None:
                     push_snmp_to_db(job[0], response)
         connection.commit()
     except (Exception, psycopg2.DatabaseError) as error:
-        logging.error(f"100, An error occurred while selecting values from the database:\n{error}")
+        logging.error(f"100, An error occurred while selecting values from the database: {error}")
     finally:
         if connection is not None:
             connection.close()
