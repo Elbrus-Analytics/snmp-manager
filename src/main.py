@@ -86,7 +86,7 @@ def request_snmp() -> None:
         3) execute these commands
         4) pushing response from command back to db
     """
-    logging.info("### Started SNMP-request ###")
+    logging.info("000, Started SNMP-request")
     try:
         for job in request_snmp_queries():
             if snmp_query := build_snmp_query(job):
@@ -95,11 +95,11 @@ def request_snmp() -> None:
         connection.commit()
     except (Exception, psycopg2.DatabaseError) as error:
         logging.error(
-            f"An error occurred while selecting values from the database: {error}")
+            f"100, An error occurred while selecting values from the database: {error}")
     finally:
         if connection is not None:
             connection.close()
-        logging.info("### Finished SNMP-request ###")
+        logging.info("001, Finished SNMP-request")
 
 
 def build_snmp_query(row: SNMP_Query) -> str:
@@ -118,7 +118,7 @@ def build_snmp_query(row: SNMP_Query) -> str:
             return f"snmpwalk -v2c -c {username} {ip} {oid}"
         else:
             logging.error(
-                f"Missing values for SNMPv2 request for Object with id={row[0]}")
+                f"111, Missing values for SNMPv2 request for Object with id={row[0]}")
     if version == 3:
         oid = row[1]
         ip = ipaddress.ip_address(row[2])
@@ -131,7 +131,7 @@ def build_snmp_query(row: SNMP_Query) -> str:
             return f"snmpwalk -v3 -l authPriv -a {auth_meth} -A {auth_pass} -x {encry_meth} -X {encry_pass} -u {username} {ip} {oid}"
         else:
             logging.error(
-                f"Missing values for SNMPv3 request for Object with id={row[0]}")
+                f"112, Missing values for SNMPv3 request for Object with id={row[0]}")
 
 
 def execute_snmp_query(query: str) -> str:
@@ -150,7 +150,7 @@ def execute_snmp_query(query: str) -> str:
         return result.split("=")[1].strip()
     else:
         raise Invalid_SNMP_Response_Exception(
-            f"The given snmp response does not contain expected values: '{result}'")
+            f"201, The given snmp response does not contain expected values: '{result}'")
 
 
 def push_snmp_to_db(pk_id: int, reply: str) -> None:
