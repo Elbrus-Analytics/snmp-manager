@@ -34,9 +34,16 @@ SNMP_Query = tuple[int, str, int, str, str | None, str |
                    None, str | None, str | None, int, datetime, str]
 
 
-class MissingEnvironmentConfigurationException(Exception):
+class Missing_Environment_Configuration_Exception(Exception):
     """
     This class is used to throw a new exception if the given environment is not fully initialized
+    """
+    pass
+
+
+class Invalid_SNMP_Response_Exception(Exception):
+    """
+    This class is used to throw a new exception if the given snmp response has invalid return values
     """
     pass
 
@@ -53,8 +60,8 @@ def load_environment_variables() -> dict[str, str]:
 
     for var in env_vars_list:
         if not (env_value := getenv(var)):
-            raise MissingEnvironmentConfigurationException(f"The given environment is not fully initialized: {var} is "
-                                                           f"not configured")
+            raise Missing_Environment_Configuration_Exception(f"The given environment is not fully initialized: {var} is "
+                                                              f"not configured")
         envs[var] = env_value
 
     return envs
@@ -134,10 +141,16 @@ def execute_snmp_query(query: str) -> str:
     :param query: str, command that should be executed
     :return: str, the response from the command
     """
-    return subprocess.Popen(
+    result = subprocess.Popen(
         query, shell=True, stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
-    ).communicate()[0].decode("utf-8").split("=")[1].strip()
+    ).communicate()[0].decode("utf-8")
+
+    if ('=' in result):
+        return result.split("=")[1].strip()
+    else:
+        raise Invalid_SNMP_Response_Exception(
+            f"The given snmp response does not contain expected values: '{result}'")
 
 
 def push_snmp_to_db(pk_id: int, reply: str) -> None:
